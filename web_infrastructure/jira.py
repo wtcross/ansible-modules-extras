@@ -96,6 +96,15 @@ options:
     description:
      - This is a free-form data structure that can contain arbitrary data. This is passed directly to the JIRA REST API (possibly after merging with other required data, as when passed to create). See examples for more information, and the JIRA REST API for the structure required for various fields.
 
+  validate_certs:
+    description:
+      - If C(no), SSL certificates will not be validated. This should only be
+        set to C(no) when no other option exists.
+    required: false
+    default: 'yes'
+    choices: ['yes', 'no']
+    version_added: 2.2
+
 notes:
   - "Currently this only works with basic-auth."
 
@@ -290,10 +299,10 @@ OP_REQUIRED = dict(create=['project', 'issuetype', 'summary', 'description'],
                    transition=['status'])
 
 def main():
-
     global module
-    module = AnsibleModule(
-        argument_spec=dict(
+    argument_spec = url_argument_spec()
+    argument_spec.update(
+        dict(
             uri=dict(required=True),
             operation=dict(choices=['create', 'comment', 'edit', 'fetch', 'transition'],
                            aliases=['command'], required=True),
@@ -307,8 +316,12 @@ def main():
             comment=dict(),
             status=dict(),
             assignee=dict(),
-            fields=dict(default={})
+            fields=dict(default={}),
         ),
+    )
+
+    module = AnsibleModule(
+        argument_spec=argument_spec,
         supports_check_mode=False
     )
 
